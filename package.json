@@ -1,0 +1,22 @@
+{
+  "name": "dot-coin-toss",
+  "displayName": "Dot Coin Toss",
+  "version": "1.0.0",
+  "description": "Pixel arcade coin toss mobile game (Cordova)",
+  "main": "index.js",
+  "scripts": {
+    "start": "cordova run android",
+    "build": "cordova build android --debug"
+  },
+  "keywords": [
+    "cordova",
+    "ecosystem:cordova",
+    "game",
+    "pixel"
+  ],
+  "author": "Zenspark AI",
+  "license": "MIT",
+  "devDependencies": {
+    "cordova-android": "^13.0.0"
+  }
+}

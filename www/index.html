@@ -246,18 +246,18 @@
       height: calc(100dvh - 36px);
       display: grid;
       grid-template-rows: auto auto 1fr auto;
-      gap: 12px;
+      gap: 8px;
     }
     .hud {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 8px;
     }
     .player-card {
-      padding: 14px;
+      padding: 8px 10px;
       border-radius: 0;
       background: #1a2341;
-      border: 4px solid #0b1021;
+      border: 3px solid #0b1021;
       position: relative;
       overflow: hidden;
       box-shadow: var(--pixel-highlight);
@@ -266,27 +266,27 @@
     .player-card.bot::after {
       content: "BOT";
       position: absolute;
-      top: 14px; right: 14px;
-      font-size: 11px;
+      top: 8px; right: 8px;
+      font-size: 10px;
       color: var(--accent-2);
       letter-spacing: .18em;
     }
-    .player-top { display: flex; align-items: center; gap: 10px; }
+    .player-top { display: flex; align-items: center; gap: 8px; }
     .mini-avatar {
-      width: 28px; height: 28px; border-radius: 0;
-      border: 3px solid #0b1021;
+      width: 22px; height: 22px; border-radius: 0;
+      border: 2px solid #0b1021;
       box-shadow: inset -4px -4px 0 rgba(0,0,0,.22), inset 4px 4px 0 rgba(255,255,255,.08);
     }
-    .player-score { font-size: 26px; font-weight: 800; margin: 8px 0 2px; }
+    .player-score { font-size: 20px; font-weight: 800; margin: 4px 0 2px; }
     .pill-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
       align-items: center;
     }
     .pill {
-      padding: 7px 10px;
-      font-size: 12px;
+      padding: 4px 7px;
+      font-size: 10px;
       border-radius: 0;
       background: #111831;
       border: 2px solid #0b1021;
@@ -295,22 +295,22 @@
     .status-panel {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
-      padding: 12px 14px;
+      padding: 8px 10px;
       border-radius: 0;
       background: #1a2341;
-      border: 4px solid #0b1021;
+      border: 3px solid #0b1021;
       box-shadow: var(--pixel-highlight);
     }
     .timer {
-      min-width: 72px;
+      min-width: 58px;
       text-align: center;
-      padding: 12px 14px;
+      padding: 8px 10px;
       border-radius: 0;
       background: #111831;
-      border: 4px solid #0b1021;
-      font-size: 24px;
+      border: 3px solid #0b1021;
+      font-size: 18px;
       font-weight: 800;
       color: var(--accent-2);
       text-shadow: 2px 2px 0 #0b1021;
@@ -319,7 +319,7 @@
       position: relative;
       border-radius: 0;
       overflow: hidden;
-      border: 6px solid #0b1021;
+      border: 4px solid #0b1021;
       background: #08101f;
       box-shadow: var(--shadow);
       min-height: 0;
@@ -335,7 +335,21 @@
     .game-controls {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 6px;
+    }
+    .game-controls button {
+      padding: 8px 10px;
+      font-size: 11px;
+      letter-spacing: .04em;
+    }
+    .status-panel strong {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .status-panel .sub {
+      font-size: 11px;
+      line-height: 1.2;
     }
     .overlay {
       position: absolute;
@@ -398,7 +412,9 @@
     @media (max-width: 420px) {
       .screen { padding: 14px; }
       .stats-grid { grid-template-columns: 1fr; }
-      .game-controls { grid-template-columns: 1fr; }
+      .game-controls { grid-template-columns: repeat(3, 1fr); }
+      .player-score { font-size: 18px; }
+      .timer { font-size: 16px; min-width: 52px; }
     }
   </style>
 </head>
@@ -779,7 +795,7 @@
         if (!coin) return;
         const point = canvasPoint(ev);
         const d = Math.hypot(point.x - coin.x, point.y - coin.y);
-        if (d <= coin.r * 1.6 && !coin.launched) {
+        if (d <= Math.max(coin.r * 2.4, 34) && !coin.launched) {
           appState.drag.active = true;
           appState.drag.pointerId = ev.pointerId;
           appState.drag.coinId = coin.id;
@@ -996,10 +1012,14 @@
       const w = ui.canvas.width / devicePixelRatio;
       const h = ui.canvas.height / devicePixelRatio;
       g.viewport = { w, h };
-      g.boardRect = { x: w * 0.11, y: h * 0.12, size: w * 0.78 };
+      const boardSize = Math.min(w * 0.92, h * 0.67);
+      const boardX = (w - boardSize) / 2;
+      const boardY = Math.max(16, h * 0.045);
+      g.boardRect = { x: boardX, y: boardY, size: boardSize };
       g.cellSize = g.boardRect.size / 5;
-      g.coinRadius = g.cellSize * 0.31;
-      g.spawn = { x: w / 2, y: h * 0.88 };
+      g.coinRadius = Math.max(18, g.cellSize * 0.35);
+      const spawnY = Math.min(h - g.coinRadius * 2.3, g.boardRect.y + g.boardRect.size + Math.max(g.coinRadius * 2.4, (h - (g.boardRect.y + g.boardRect.size)) * 0.56));
+      g.spawn = { x: w / 2, y: spawnY };
     }
 
     function buildBoard(g) {
@@ -1472,25 +1492,51 @@
     function drawSpawnZone(ctx, g) {
       const coinTheme = resolveTheme('coins');
       const { x, y } = g.spawn;
-      pixelFrame(ctx, x - g.coinRadius * 2.1, y - g.coinRadius * 2.1, g.coinRadius * 4.2, g.coinRadius * 4.2, 'rgba(12,18,34,.58)', '#0b1021', 'rgba(255,255,255,.04)');
-      ctx.strokeStyle = coinTheme.colors[0];
+      const touchRadius = Math.max(g.coinRadius * 2.4, 34);
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,.12)';
       ctx.lineWidth = 3;
-      ctx.strokeRect(x - g.coinRadius * 1.35, y - g.coinRadius * 1.35, g.coinRadius * 2.7, g.coinRadius * 2.7);
+      ctx.setLineDash([8, 6]);
+      ctx.beginPath();
+      ctx.arc(x, y, touchRadius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(12,18,34,.3)';
+      ctx.beginPath();
+      ctx.arc(x, y, touchRadius - 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = coinTheme.colors[0];
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, g.coinRadius * 1.22, 0, Math.PI * 2);
+      ctx.stroke();
       ctx.fillStyle = coinTheme.colors[1];
       ctx.font = '700 12px Courier New';
       ctx.textAlign = 'center';
-      ctx.fillText('SLING ZONE', x, y + g.coinRadius * 3.1);
+      ctx.fillText('DRAG & RELEASE', x, y + touchRadius + 18);
+      ctx.restore();
     }
 
     function drawCoins(ctx, g) {
       const themeA = resolveTheme('coins');
       const themeB = { colors: ['#ff9e66', '#c34a00'] };
+      const activeCoin = getCurrentThrowableCoin();
       g.coins.forEach(coin => {
         if (coin.removed) return;
         const theme = coin.owner === 'A' ? themeA : themeB;
         const alpha = Math.max(0, 1 - coin.sink);
         ctx.save();
         ctx.globalAlpha = alpha;
+        if (activeCoin && coin.id === activeCoin.id && !coin.launched && g.currentPlayer === 'A') {
+          const grabRadius = Math.max(coin.r * 2.4, 34);
+          ctx.strokeStyle = 'rgba(87,211,255,.8)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 5]);
+          ctx.beginPath();
+          ctx.arc(coin.x, coin.y, grabRadius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
         drawPixelDisc(ctx, coin.x, coin.y, coin.r, theme.colors[0], theme.colors[1]);
         ctx.fillStyle = 'rgba(255,255,255,.16)';
         ctx.fillRect(Math.round(coin.x - coin.r * 0.45), Math.round(coin.y - coin.r * 0.4), Math.max(4, Math.round(coin.r * 0.45)), 4);
@@ -1509,29 +1555,60 @@
       if (!appState.drag.active) return;
       const coin = g.coins.find(c => c.id === appState.drag.coinId);
       if (!coin) return;
+      const dx = coin.x - appState.drag.x;
+      const dy = coin.y - appState.drag.y;
+      const power = Math.hypot(dx, dy);
+      const nx = dx / (power || 1);
+      const ny = dy / (power || 1);
+      const previewLen = Math.min(power * 1.45, g.cellSize * 3.2);
+      const targetX = coin.x + nx * previewLen;
+      const targetY = coin.y + ny * previewLen;
       ctx.save();
-      ctx.strokeStyle = 'rgba(87,211,255,.95)';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([6, 6]);
+      ctx.strokeStyle = 'rgba(87,211,255,.55)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
       ctx.beginPath();
-      ctx.moveTo(coin.x, coin.y);
-      ctx.lineTo(appState.drag.x, appState.drag.y);
+      ctx.moveTo(appState.drag.x, appState.drag.y);
+      ctx.lineTo(coin.x, coin.y);
       ctx.stroke();
       ctx.setLineDash([]);
-      pixelFrame(ctx, appState.drag.x - 12, appState.drag.y - 12, 24, 24, 'rgba(87,211,255,.22)', '#0b1021', 'rgba(255,255,255,.08)');
+      ctx.strokeStyle = 'rgba(255,214,92,.95)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(coin.x, coin.y);
+      ctx.lineTo(targetX, targetY);
+      ctx.stroke();
+      for (let i = 1; i <= 5; i++) {
+        const t = i / 5;
+        const px = coin.x + nx * previewLen * t;
+        const py = coin.y + ny * previewLen * t;
+        ctx.fillStyle = i === 5 ? 'rgba(255,214,92,.95)' : 'rgba(255,214,92,.55)';
+        ctx.beginPath();
+        ctx.arc(px, py, i === 5 ? 6 : 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(255,214,92,.95)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, 12, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(87,211,255,.22)';
+      ctx.beginPath();
+      ctx.arc(appState.drag.x, appState.drag.y, 16, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
     }
 
     function drawLegend(ctx, g) {
       ctx.save();
-      pixelFrame(ctx, 14, g.viewport.h - 72, 232, 58, '#121a31', '#0b1021', 'rgba(255,255,255,.05)');
+      pixelFrame(ctx, 12, 12, 156, 42, '#121a31', '#0b1021', 'rgba(255,255,255,.05)');
       ctx.fillStyle = 'rgba(255,255,255,.9)';
-      ctx.font = '700 11px Courier New';
+      ctx.font = '700 10px Courier New';
       ctx.textAlign = 'left';
-      ctx.fillText('HOLE=0  STACK=2X  OUT=0', 24, g.viewport.h - 42);
+      ctx.fillText('HOLE 0 / STACK 2X', 20, 29);
       ctx.fillStyle = 'rgba(255,255,255,.66)';
-      ctx.font = '11px Courier New';
-      ctx.fillText(`SYNC:${firebaseStub.lastPayload ? 'games/' + firebaseStub.config.collection : 'idle'}`, 24, g.viewport.h - 22);
+      ctx.font = '10px Courier New';
+      ctx.fillText('DRAG BACK, AIM FORWARD', 20, 43);
       ctx.restore();
     }
 

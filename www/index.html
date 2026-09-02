@@ -728,6 +728,26 @@
         ${color};`;
     }
 
+    function scheduleGameResize() {
+      requestAnimationFrame(() => requestAnimationFrame(resizeCanvas));
+    }
+
+    function enterImmediateBotMatch(reason = 'instant_bot') {
+      firebaseStub.activeGameId = `game_${Date.now()}`;
+      ui.matchmakingOverlay.classList.remove('active');
+      ui.resultOverlay.classList.remove('active');
+      appState.matchmaking = { active: false, seconds: 0, elapsed: 0 };
+      showScreen('game');
+      scheduleGameResize();
+      requestAnimationFrame(() => {
+        resizeCanvas();
+        startGame('bot');
+        firebaseStub.sync({ phase: 'live', mode: reason });
+        ui.statusTitle.textContent = '즉시 대전 시작';
+        ui.statusText.textContent = '오프라인 BOT과 바로 플레이합니다. 코인을 끌어당겨 발사하세요.';
+      });
+    }
+
     function bindEvents() {
       ui.loginButton.addEventListener('click', submitLogin);
       ui.logoutButton.addEventListener('click', () => {
@@ -742,8 +762,8 @@
       ui.editProfileButton.addEventListener('click', () => showScreen('login'));
       ui.shopBackButton.addEventListener('click', () => showScreen(appState.game ? 'game' : 'main'));
       ui.returnShopButton.addEventListener('click', () => { renderShop(); showScreen('shop'); });
-      ui.forceBotButton.addEventListener('click', () => completeMatchmaking(true));
-      ui.playAgainButton.addEventListener('click', () => { ui.resultOverlay.classList.remove('active'); startGame('bot'); });
+      ui.forceBotButton.addEventListener('click', () => enterImmediateBotMatch('force_bot'));
+      ui.playAgainButton.addEventListener('click', () => enterImmediateBotMatch('rematch'));
       ui.backLobbyButton.addEventListener('click', () => { ui.resultOverlay.classList.remove('active'); appState.game = null; showScreen('main'); refreshLobby(); });
       ui.forfeitButton.addEventListener('click', () => handleForfeit('A'));
       ui.disconnectButton.addEventListener('click', simulateDisconnect);
@@ -829,6 +849,7 @@
       appState.screen = name;
       document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
       $(`screen-${name}`).classList.add('active');
+      if (name === 'game') scheduleGameResize();
       renderShop();
     }
 
@@ -930,26 +951,11 @@
     }
 
     function startMatchmaking() {
-      firebaseStub.activeGameId = `game_${Date.now()}`;
-      firebaseStub.sync({ phase: 'queue', queueStartedAt: new Date().toISOString() });
-      appState.matchmaking = { active: true, seconds: 15, elapsed: 0 };
-      showScreen('game');
-      ui.matchmakingOverlay.classList.add('active');
-      ui.resultOverlay.classList.remove('active');
-      ui.matchmakingTitle.textContent = '상대 검색 중…';
-      ui.matchmakingText.textContent = '15초 동안 피어 탐색 후 오프라인 AI BOT으로 즉시 전환됩니다.';
-      ui.matchmakingBar.style.width = '0%';
-      ui.statusTitle.textContent = '매치메이킹 대기';
-      ui.statusText.textContent = '온라인 동기화 슬롯을 시뮬레이션하고 있습니다.';
-      startGame('pending');
+      enterImmediateBotMatch('quick_play');
     }
 
     function completeMatchmaking(forceBot = false) {
-      if (!appState.matchmaking.active) return;
-      appState.matchmaking.active = false;
-      ui.matchmakingOverlay.classList.remove('active');
-      startGame('bot');
-      firebaseStub.sync({ phase: 'live', mode: forceBot ? 'forced_bot' : 'bot_fallback' });
+      enterImmediateBotMatch(forceBot ? 'forced_bot' : 'bot_fallback');
     }
 
     function startGame(mode) {
@@ -1384,6 +1390,10 @@
       const ctx = ui.canvas.getContext('2d');
       const w = ui.canvas.width / devicePixelRatio;
       const h = ui.canvas.height / devicePixelRatio;
+      if (appState.screen === 'game' && (!w || !h)) {
+        scheduleGameResize();
+        return;
+      }
       ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
       ctx.clearRect(0, 0, w, h);
       if (!appState.game) {
